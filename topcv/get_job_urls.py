@@ -9,8 +9,8 @@ OUTPUT_FILE = "topcv_job_urls.txt"
 TIMEOUT_MIN = 10
 TIMEOUT_MAX = 30
 
-DELAY_MIN = 2
-DELAY_MAX = 6
+DELAY_MIN = 1
+DELAY_MAX = 3
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0"
