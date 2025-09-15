@@ -8,6 +8,8 @@ from bs4 import BeautifulSoup
 
 from common.common import MAX_RETRIES, scrape_page_with_retry, MIN_DELAY_BETWEEN_REQUESTS, MAX_DELAY_BETWEEN_REQUESTS
 
+BASE_URL = 'https://www.careerlink.vn/tim-viec-lam'
+
 scraper = cloudscraper.create_scraper({
     'browser': 'chrome',
     'platform': 'windows',
@@ -24,12 +26,13 @@ logger = logging.getLogger(__name__)
 def extract_job_url(soup):
     job_urls = []
 
-    jobs = soup.find_all("h3", {"class": "imt-3 text-break"})
-    print(len(jobs))
+    jobs = soup.find_all("a", {"class": "job-link clickable-outside"})
+    # print(len(jobs))
     for job in jobs:
-        url = job.get("data-url")
+        url = job['href']
         cleaned_url = url.split('?')[0] if url else None
-        if cleaned_url:
+        if cleaned_url and not cleaned_url.startswith("http"):
+            cleaned_url = "https://www.careerlink.vn" + cleaned_url
             job_urls.append(cleaned_url)
 
     return job_urls
@@ -37,7 +40,7 @@ def extract_job_url(soup):
 
 def main():
     page = 1
-    url = "https://itviec.com/it-jobs?page={page}"
+    url = "https://www.careerlink.vn/vieclam/list?page={page}"
     consecutive_failures = 0
     max_consecutive_failures = 5
 

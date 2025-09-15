@@ -24,10 +24,10 @@ logger = logging.getLogger(__name__)
 def extract_job_url(soup):
     job_urls = []
 
-    jobs = soup.find_all("h3", {"class": "imt-3 text-break"})
+    jobs = soup.find_all("h2", {"class": "job__list-item-title"})
     print(len(jobs))
     for job in jobs:
-        url = job.get("data-url")
+        url = job.find("a").get("href")
         cleaned_url = url.split('?')[0] if url else None
         if cleaned_url:
             job_urls.append(cleaned_url)
@@ -37,7 +37,7 @@ def extract_job_url(soup):
 
 def main():
     page = 1
-    url = "https://itviec.com/it-jobs?page={page}"
+    url = "https://123job.vn/tuyen-dung?sort=new&page={page}"
     consecutive_failures = 0
     max_consecutive_failures = 5
 

@@ -46,6 +46,7 @@ def main():
 
     # Clear the file at start (optional)
     # with open('job_urls.txt', 'w') as file:
+    #     file.write("")
     #     pass
 
     while True:

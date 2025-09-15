@@ -1,4 +1,5 @@
 import logging
+import random
 import time
 from typing import Tuple, Optional, Any
 
@@ -7,15 +8,38 @@ from cloudscraper.exceptions import CloudflareException
 
 # Configuration constants - can be overridden when importing
 MIN_DELAY_BETWEEN_REQUESTS = 2
-MAX_DELAY_BETWEEN_REQUESTS = 10
+MAX_DELAY_BETWEEN_REQUESTS = 5
 CLOUDFLARE_TIMEOUT = 10
 TOO_MANY_REQUESTS_TIMEOUT = 30
 REQUEST_TIMEOUT = 30
 
 # Retry configuration
-MAX_RETRIES = 3
+MAX_RETRIES = 5
 BACKOFF_FACTOR = 2
 INITIAL_BACKOFF_DELAY = 5
+
+USER_AGENTS = [
+    # Chrome (Windows)
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+
+    # Chrome (Mac)
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
+
+    # Firefox (Windows)
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:115.0) Gecko/20100101 Firefox/115.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:117.0) Gecko/20100101 Firefox/117.0",
+
+    # Firefox (Mac)
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 13.3; rv:115.0) Gecko/20100101 Firefox/115.0",
+
+    # Chrome (Android)
+    "Mozilla/5.0 (Linux; Android 13; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Mobile Safari/537.36",
+
+    # Safari (iPhone)
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.4 Mobile/15E148 Safari/604.1",
+]
+
 
 # Set up logging
 logging.basicConfig(
@@ -84,6 +108,9 @@ def handle_request_error(error: requests.RequestException, retry_count: int = 0)
         elif status_code == 404:
             logger.info("Page not found, likely reached the end.")
             return 'break', False
+        elif status_code >= 401:
+            logger.warning("Unauthorized")
+            return 'break', False
         elif status_code in [500, 502, 503, 504]:  # Server errors - worth retrying
             backoff_delay = calculate_backoff_delay(retry_count)
             logger.warning(f"Server error {status_code}, backing off for {backoff_delay} seconds...")
@@ -125,7 +152,12 @@ def scrape_page_with_retry(scraper: Any, url: str, page: int,
         try:
             logger.info(f"Scraping page {page} (attempt {retry_count + 1}/{retry_config.max_retries})...")
 
-            response = scraper.get(url.format(page=page), timeout=REQUEST_TIMEOUT)
+            response = scraper.get(url.format(page=page), timeout=REQUEST_TIMEOUT, headers={
+                "User-Agent": random.choice(USER_AGENTS),
+                "Accept-Language": "en-US,en;q=0.9,vi;q=0.8",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Referer": url.split("/")[0],
+            })
             response.raise_for_status()
 
             logger.info(f"Successfully scraped page {page}")
