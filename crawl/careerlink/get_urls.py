@@ -39,7 +39,7 @@ def extract_job_url(soup):
 
 
 def main():
-    page = 1
+    page = 164
     url = "https://www.careerlink.vn/vieclam/list?page={page}"
     consecutive_failures = 0
     max_consecutive_failures = 5
